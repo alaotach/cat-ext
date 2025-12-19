@@ -12,7 +12,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["image.png"],
+      "resources": ["image.png", "cat_walk.png", "cat_sit.png", "cat_sleep.png"],
       "matches": ["<all_urls>"]
     }
   ]

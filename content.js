@@ -106,8 +106,8 @@ function setState(newState) { //manage state transitions and visuals
         cat.style.width = "80px";
         cat.style.height = "48px";
         cat.style.backgroundImage = `url('${sprites.bongo}')`;
-        cat.style.transform = "none";
         bongo.style.display = "block";
+        bongo.style.transform = `scaleX(${dir})`;
         const rect = cat.getBoundingClientRect();
         bongo.style.left = rect.left + "px";
         bongo.style.top = rect.top + "px";
@@ -155,6 +155,7 @@ document.addEventListener("keydown", (e) => {
   if (state !== "bongo") {
     prevState = state;
     setState("bongo");
+    bongo.style.transform = `scaleX(${dir})`;
   }
   // handling paw movement
   if (lastWasLeft) {

@@ -118,3 +118,12 @@ label {
     text-align: center;
     margin-top: 14px;
 }
+
+.setting.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.setting.disabled .toggle {
+  background: #27272a;
+}

@@ -9,9 +9,10 @@ chrome.storage.local.get(
   (data) => {
     mode.value = data.mode ?? "walk";
     pos.value = data.pos ?? "br";
-    meowSound.checked = data.sound ?? true;
-    typingSound.checked = data["typing-sound"] ?? true;
-    bongoTyping.checked = data["bongo-typing"] ?? true;
+    meowSound.checked = data.sound !== undefined ? data.sound : true;
+    typingSound.checked = data["typing-sound"] !== undefined ? data["typing-sound"] : true;
+    bongoTyping.checked = data["bongo-typing"] !== undefined ? data["bongo-typing"] : true;
+    disableBongo();
   }
 );
 
@@ -28,6 +29,17 @@ function saveSettings() {
 mode.addEventListener('change', saveSettings);
 pos.addEventListener('change', saveSettings);
 meowSound.addEventListener('change', saveSettings);
-typingSound.addEventListener('change', saveSettings);
+typingSound.addEventListener('change', () => {saveSettings(); disableBongo();});
 bongoTyping.addEventListener('change', saveSettings);
 
+const bongoSetting = document.getElementById("bongo-setting");
+
+function disableBongo() {
+  if (!typingSound.checked) {
+    bongoSetting.classList.add("disabled");
+    bongoTyping.disabled = true;
+  } else {
+    bongoSetting.classList.remove("disabled");
+    bongoTyping.disabled = false;
+  }
+}

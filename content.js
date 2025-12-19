@@ -15,12 +15,12 @@ const mouseDevice = document.createElement("div");
 mouseDevice.id = "mouse-device";
 
 const meow = new Audio(chrome.runtime.getURL("meow.mp3"));
-meow.volume = 0.6;
+meow.volume = 0.8;
 meow.loop = false;
 let playing = false;
 
 const typingAud = new Audio(chrome.runtime.getURL("typing.mp3"));
-typingAud.volume = 0.3;
+typingAud.volume = 0.5;
 typingAud.loop = false;
 let typing = false;
 

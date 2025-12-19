@@ -4,29 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meowxtension Settings</title>
-    <style>
-        body {
-        font-family: system-ui, sans-serif;
-        background: #111;
-        color: #fff;
-        width: 260px;
-        padding: 12px;
-        }
-        h3 { margin: 8px 0; font-size: 14px; }
-        select, input {
-        width: 100%;
-        margin-bottom: 8px;
-        }
-        label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        margin-bottom: 6px;
-        }
-    </style>
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
+    <div class="header">
+        <div class="title">Meowxtension Settings</div>
+    </div>
+    <div class="subtitle">Customize ur meowww</div>
+    <div class="card">
     <h3>Cat Mode</h3>
     <select id="mode">
         <option value="walk">Moving Cat</option>
@@ -34,6 +19,8 @@
         <option value="sleep">Sleep Only</option>
         <option value="bongo">Bongo Cat</option>
     </select>
+    </div>
+    <div class="card">
     <h3>Position</h3>
     <select id="pos">
         <option value="bl">Bottom Left</option>
@@ -41,10 +28,14 @@
         <option value="tl">Top Left</option>
         <option value="tr">Top Right</option>
     </select>
+    </div>
+    <div class="card">
     <h3>Settings</h3>
-    <label><input type="checkbox" id="meow-sound"> Enable Meow Sound</label>
-    <label><input type="checkbox" id="typing-sound"> Enable Typing Sound</label>
-    <label><input type="checkbox" id="bongo-typing"> Enable Bongo on Typing</label>
+    <label class="setting"><input type="checkbox" id="meow-sound"> Enable Meow Sound</label>
+    <label class="setting"><input type="checkbox" id="typing-sound"> Enable Typing Sound</label>
+    <label class="setting"><input type="checkbox" id="bongo-typing"> Enable Bongo on Typing</label>
+    </div>
+    <div class="footer">made with 🐾 for cat lovers</div>
     <script src="popup.js"></script>
     
 </body>

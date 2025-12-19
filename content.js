@@ -64,7 +64,8 @@ let settings = {
   mode: "walk",
   pos: "br",
   sound: true,
-  "typing-sound": true
+  "typing-sound": true,
+  "bongo-typing": true
 };
 
 let moveInterval = null;
@@ -206,6 +207,10 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   
+  if (!settings["bongo-typing"]) {
+    return;
+  }
+  
   if (state !== "bongo") {
     prevState = state;
     setState("bongo");
@@ -334,4 +339,4 @@ function applySettings() {
 
 
 setState("walk");
-move();
+startMoving();

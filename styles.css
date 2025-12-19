@@ -5,5 +5,45 @@
     width: 80px;
     height: 80px;
     background-size: cover;
-    z-index: 99999;
+    z-index: 2140000000;
+    background-size: contain;
+    background-repeat: no-repeat;
+    transition: transform 0.2s linear;
+}
+
+#bongo {
+    position: fixed;
+    z-index: 2140000001;
+    pointer-events: none;
+}
+
+#left-paw, #right-paw {
+    position: absolute;
+    width: 80px;
+    height: 48px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 2;
+}
+#left-paw {
+    left: 4px;
+    top: 1px;
+}
+#right-paw {
+    right: 31px;
+    top: -5px;
+}
+
+#mouse-device {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    display: none;
+    pointer-events: none;
+    left: 8px;
+    top: 21px;
+    z-index: 1;
 }

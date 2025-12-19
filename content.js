@@ -1,21 +1,71 @@
 const cat = document.createElement("div");
 cat.id = "cat";
+
+const bongo = document.createElement("div");
+bongo.id = "bongo";
+bongo.style.display = "none";
+
+const leftPaw = document.createElement("div");
+leftPaw.id = "left-paw";
+
+const rightPaw = document.createElement("div");
+rightPaw.id = "right-paw";
+
+const mouseDevice = document.createElement("div");
+mouseDevice.id = "mouse-device";
+
+bongo.appendChild(leftPaw);
+bongo.appendChild(rightPaw);
+bongo.appendChild(mouseDevice);
+
 document.body.appendChild(cat);
+document.body.appendChild(bongo);
 
 let pos = 0;
 let dir = 1;
 const speed = 1; //pixels per frame
 let state = "walk";
 let timer = null;
+let mouseX = 0;
+let mouseY = 0;
+let mousetrack = false;
 
 const sprites = {
   walk: chrome.runtime.getURL("cat_walk.png"),
   sit: chrome.runtime.getURL("cat_sit.png"),
-  sleep: chrome.runtime.getURL("cat_sleep.png")
+  sleep: chrome.runtime.getURL("cat_sleep.png"),
+  bongo: chrome.runtime.getURL("osu/mousebg.png"),
+  mouse: chrome.runtime.getURL("osu/mouse.png"),
+  leftPaw: chrome.runtime.getURL("osu/left.png"),
+  rightPaw: chrome.runtime.getURL("osu/right.png"),
+  upPaw: chrome.runtime.getURL("osu/up.png"),
+  wavePaw: chrome.runtime.getURL("osu/wave.png")
 };
 
+let bongoT = null;
+let prevState = "walk";
+
+let leftState = false;
+let rightState = false;
+let lastWasLeft = false;
+
 function move() {
-    setInterval(() => {
+    setInterval(() => { // main movement logic
+        if (nearCat()) {
+            if (!mousetrack) {
+                mousetrack = true;
+                setState("sit");
+            }
+            const rect = cat.getBoundingClientRect();
+            const catX = rect.left + rect.width / 2;
+            cat.style.transform = mouseX < catX ? "scaleX(-1)" : "scaleX(1)";
+            return;
+        } else {
+            if (mousetrack) {
+                mousetrack = false;
+                setState("walk");
+            }
+        }
         if (state !== "walk") return;
         pos += dir * speed;
         const screenW = window.innerWidth;
@@ -33,9 +83,39 @@ function move() {
     }, 16);
 }
 
-function setState(newState) {
+function setState(newState) { //manage state transitions and visuals
+    if (newState !== "bongo" && state !== "bongo") {
+        prevState = state;
+    }
     state = newState;
-    cat.style.backgroundImage = `url('${sprites[state]}')`;
+    
+    if (state === "bongo") {
+        cat.style.width = "80px";
+        cat.style.height = "48px";
+        cat.style.backgroundImage = `url('${sprites.bongo}')`;
+        cat.style.transform = "none";
+        bongo.style.display = "block";
+        const rect = cat.getBoundingClientRect();
+        bongo.style.left = rect.left + "px";
+        bongo.style.top = rect.top + "px";
+        bongo.style.width = "80px";
+        bongo.style.height = "48px";
+        leftPaw.style.display = "block";
+        rightPaw.style.display = "block";
+        leftPaw.style.backgroundImage = `url('${sprites.upPaw}')`;
+        rightPaw.style.backgroundImage = `url('${sprites.upPaw}')`;
+        mouseDevice.style.backgroundImage = `url('${sprites.mouse}')`;
+        mouseDevice.style.display = "block";
+    } else {
+        cat.style.backgroundImage = `url('${sprites[state]}')`;
+        cat.style.width = "80px";
+        cat.style.height = "80px";
+        bongo.style.display = "none";
+        leftPaw.style.display = "none";
+        rightPaw.style.display = "none";
+        mouseDevice.style.display = "none";
+    }
+    
     if (timer) clearTimeout(timer);
 
     if (state === "walk") { 
@@ -52,6 +132,61 @@ function Idle() {
     setState(Math.random() < 0.5 ? "sit" : "sleep");
   }
 }
+
+document.addEventListener("mousemove", (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+document.addEventListener("keydown", (e) => {
+  if (state !== "bongo") {
+    prevState = state;
+    setState("bongo");
+  }
+  // handling paw movement
+  if (lastWasLeft) {
+    rightState = true;
+    rightPaw.style.backgroundImage = `url('${sprites.rightPaw}')`;
+    lastWasLeft = false;
+  } else {
+    leftState = true;
+    leftPaw.style.backgroundImage = `url('${sprites.leftPaw}')`;
+    lastWasLeft = true;
+  }
+  
+  if (bongoT) clearTimeout(bongoT);
+  bongoT = setTimeout(() => {
+    setState(prevState);
+  }, 500);
+}, true);
+
+
+
+document.addEventListener("keyup", (e) => { // reset paw positions to up paw
+  leftState = false;
+  rightState = false;
+  
+  if (state === "bongo") {
+    leftPaw.style.backgroundImage = `url('${sprites.upPaw}')`;
+    rightPaw.style.backgroundImage = `url('${sprites.upPaw}')`;
+  }
+}, true);
+
+function nearCat() { // if mouse is near cat it will look at it hehe cutee
+    const rect = cat.getBoundingClientRect();
+    const catX = rect.left + rect.width / 2;
+    const catY = rect.top + rect.height / 2;
+    const dx = mouseX - catX;
+    const dy = mouseY - catY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    return dist < 3.14*3.14*3.14*3.14;
+}
+
+
+
+
+
+
 
 setState("walk");
 move();

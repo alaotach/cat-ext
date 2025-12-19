@@ -40,6 +40,10 @@ let mouseX = 0;
 let mouseY = 0;
 let mousetrack = false;
 
+let targetX = 0;
+let targetY = 0;
+let randomMoveTimer = null;
+
 const sprites = {
   walk: chrome.runtime.getURL("cat_walk.png"),
   sit: chrome.runtime.getURL("cat_sit.png"),
@@ -288,10 +292,12 @@ function playMeow() {
 
 
 function applySettings() {
+  // Reset all positioning
   cat.style.bottom = "auto";
   cat.style.top = "auto";
   cat.style.left = "auto";
   cat.style.right = "auto";
+  
   const positions = {
     bl: { bottom: "20px", left: "20px" },
     br: { bottom: "20px", right: "20px" },
@@ -299,39 +305,108 @@ function applySettings() {
     tr: { top: "20px", right: "20px" }
   };
   const p = positions[settings.pos] || positions.br;
-  Object.assign(cat.style, p);  
-  if (settings.mode === "walk") {
-    if (settings.pos === "br" || settings.pos === "tr") {
-      pos = window.innerWidth - 100;
-      dir = -1;
-    } else {
-      pos = 0;
-      dir = 1;
-    }
-    cat.style.left = pos + "px";
-  }
   
   // Apply mode
   if (timer) clearTimeout(timer);
   if (bongoT) clearTimeout(bongoT);
+  if (randomMoveTimer) clearTimeout(randomMoveTimer);
+  if (moveInterval) stopMoving();
   
   switch (settings.mode) {
     case "walk":
+      Object.assign(cat.style, p);
+      if (settings.pos === "br" || settings.pos === "tr") {
+        pos = window.innerWidth - 100;
+        dir = -1;
+      } else {
+        pos = 0;
+        dir = 1;
+      }
+      cat.style.left = pos + "px";
       setState("walk");
-      if (!moveInterval) startMoving();
+      startMoving();
+      break;
+    case "random":
+      // Random mode starts from corner
+      Object.assign(cat.style, p);
+      setState("walk");
+      randomMotion();
       break;
     case "idle":
-      if (moveInterval) stopMoving();
+      Object.assign(cat.style, p);
       setState(Math.random() < 0.5 ? "sit" : "sleep");
       break;
     case "sleep":
-      if (moveInterval) stopMoving();
+      Object.assign(cat.style, p);
       setState("sleep");
       break;
     case "bongo":
-      if (moveInterval) stopMoving();
+      Object.assign(cat.style, p);
       setState("bongo");
       break;
+  }
+}
+
+
+
+
+function randomMotion() {
+  if (moveInterval) return;
+  randomState();
+  moveInterval = setInterval(() => {
+    if (settings.mode !== "random") return;
+    playMeow();
+    if (nearCat()) {
+      if (!mousetrack) {
+        mousetrack = true;
+        setState("sit");
+      }
+      const rect = cat.getBoundingClientRect();
+      const catX = rect.left + rect.width / 2;
+      dir = mouseX < catX ? -1 : 1;
+      cat.style.transform = `scaleX(${dir})`;
+      return;
+    } else {
+      if (mousetrack) {
+        mousetrack = false;
+        setState("walk");
+      }
+    }
+    
+    if (state !== "walk") return;
+    
+    const rect = cat.getBoundingClientRect();
+    const currentX = rect.left;
+    const currentY = rect.top;
+    const dx = targetX - currentX;
+    const dy = targetY - currentY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance < 5) {
+      randomState();
+      return;
+    }
+    const moveSpeed = 2;
+    const moveX = (dx / distance) * moveSpeed;
+    const moveY = (dy / distance) * moveSpeed;
+    if (Math.abs(dx) > 1) {
+      dir = dx > 0 ? 1 : -1;
+      cat.style.transform = `scaleX(${dir})`;
+    }
+    cat.style.left = (currentX + moveX) + "px";
+    cat.style.top = (currentY + moveY) + "px";
+  }, 16);
+}
+
+function randomState() {
+  const maxX = window.innerWidth - 100;
+  const maxY = window.innerHeight - 100;
+  targetX = Math.random() * maxX;
+  targetY = Math.random() * maxY;  
+  if (Math.random() < 0.2) {
+    setState("sit");
+    randomMoveTimer = setTimeout(() => {
+      if (settings.mode === "random") setState("walk");
+    }, 2000 + Math.random() * 3000);
   }
 }
 

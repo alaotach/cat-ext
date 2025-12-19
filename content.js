@@ -14,6 +14,11 @@ rightPaw.id = "right-paw";
 const mouseDevice = document.createElement("div");
 mouseDevice.id = "mouse-device";
 
+const meow = new Audio(chrome.runtime.getURL("meow.mp3"));
+meow.volume = 0.6;
+meow.loop = false;
+let playing = false;
+
 bongo.appendChild(leftPaw);
 bongo.appendChild(rightPaw);
 bongo.appendChild(mouseDevice);
@@ -51,7 +56,8 @@ let lastWasLeft = false;
 
 function move() {
     setInterval(() => { // main movement logic
-        if (nearCat()) {
+      playMeow();
+      if (nearCat()) {
             if (!mousetrack) {
                 mousetrack = true;
                 setState("sit");
@@ -183,7 +189,18 @@ function nearCat() { // if mouse is near cat it will look at it hehe cutee
 }
 
 
-
+function playMeow() {
+    if (nearCat() && !playing) {
+        meow.currentTime = 0;
+        meow.play();
+        playing = true;
+    }
+    if (!nearCat() && playing) {
+        meow.pause();
+        meow.currentTime = 0;
+        playing = false;
+    }
+}
 
 
 

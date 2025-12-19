@@ -59,42 +59,75 @@ let leftState = false;
 let rightState = false;
 let lastWasLeft = false;
 
-function move() {
-    setInterval(() => { // main movement logic
-      playMeow();
-      if (nearCat()) {
-            if (!mousetrack) {
-                mousetrack = true;
-                setState("sit");
-            }
-            const rect = cat.getBoundingClientRect();
-            const catX = rect.left + rect.width / 2;
-            dir = mouseX < catX ? -1 : 1;
-            cat.style.transform = `scaleX(${dir})`;
-            return;
-        } else {
-            if (mousetrack) {
-                mousetrack = false;
-                setState("walk");
-            }
-            cat.style.transform = `scaleX(${dir})`;
-        }
-        if (state !== "walk") return;
-        pos += dir * speed;
-        const screenW = window.innerWidth;
-        if (pos + 80 >= screenW) {
-        dir = -1;
-        cat.style.transform = `scaleX(${dir})`;
-        Idle();
-        }
-        if ( pos <= 0) {
-            dir = 1;
-            cat.style.transform = `scaleX(${dir})`;
-            Idle();
-        }
-        cat.style.left = pos + "px";
-    }, 16);
+
+let settings = {
+  mode: "walk",
+  pos: "br",
+  sound: true,
+  "typing-sound": true
+};
+
+let moveInterval = null;
+
+chrome.storage.local.get(settings, (data) => {
+  settings = data;
+  applySettings();
+});
+
+chrome.storage.onChanged.addListener((changes) => {
+  for (let key in changes) {
+    settings[key] = changes[key].newValue;
+  }
+  applySettings();
+});
+
+function startMoving() {
+  if (moveInterval) return;
+  moveInterval = setInterval(() => {
+    if (settings.mode !== "walk") return;
+    playMeow();
+    if (nearCat()) {
+      if (!mousetrack) {
+        mousetrack = true;
+        setState("sit");
+      }
+      const rect = cat.getBoundingClientRect();
+      const catX = rect.left + rect.width / 2;
+      dir = mouseX < catX ? -1 : 1;
+      cat.style.transform = `scaleX(${dir})`;
+      return;
+    } else {
+      if (mousetrack) {
+        mousetrack = false;
+        setState("walk");
+      }
+      cat.style.transform = `scaleX(${dir})`;
+    }
+    if (state !== "walk") return;
+    pos += dir * speed;
+    const screenW = window.innerWidth;
+    if (pos + 80 >= screenW) {
+      dir = -1;
+      if (state !== "bongo") cat.style.transform = `scaleX(${dir})`;
+      Idle();
+    }
+    if (pos <= 0) {
+      dir = 1;
+      if (state !== "bongo") cat.style.transform = `scaleX(${dir})`;
+      Idle();
+    }
+    cat.style.left = pos + "px";
+  }, 16);
 }
+
+function stopMoving() {
+  if (moveInterval) {
+    clearInterval(moveInterval);
+    moveInterval = null;
+  }
+}
+
+
 
 function setState(newState) { //manage state transitions and visuals
     if (newState !== "bongo" && state !== "bongo") {
@@ -152,10 +185,30 @@ document.addEventListener("mousemove", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
+  if (settings.mode === "bongo") {
+    if (lastWasLeft) {
+      rightState = true;
+      rightPaw.style.backgroundImage = `url('${sprites.rightPaw}')`;
+      lastWasLeft = false;
+    } else {
+      leftState = true;
+      leftPaw.style.backgroundImage = `url('${sprites.leftPaw}')`;
+      lastWasLeft = true;
+    }
+    if (!e.repeat && settings["typing-sound"]) {
+      typingAud.currentTime = 0;
+      typingAud.play().catch(() => {});
+      setTimeout(() => {
+        typingAud.pause();
+        typingAud.currentTime = 0;
+      }, 150);
+    }
+    return;
+  }
+  
   if (state !== "bongo") {
     prevState = state;
     setState("bongo");
-    bongo.style.transform = `scaleX(${dir})`;
   }
   // handling paw movement
   if (lastWasLeft) {
@@ -167,7 +220,7 @@ document.addEventListener("keydown", (e) => {
     leftPaw.style.backgroundImage = `url('${sprites.leftPaw}')`;
     lastWasLeft = true;
   }
-  if (!e.repeat) {
+  if (!e.repeat && settings["typing-sound"]) {
     typingAud.currentTime = 0;
     typingAud.play().catch(() => {});
 
@@ -207,6 +260,14 @@ function nearCat() { // if mouse is near cat it will look at it hehe cutee
 
 
 function playMeow() {
+    if (!settings.sound) {
+        if (playing) {
+            meow.pause();
+            meow.currentTime = 0;
+            playing = false;
+        }
+        return;
+    }
     if (nearCat() && !playing) {
         meow.currentTime = 0;
         meow.play();
@@ -217,6 +278,56 @@ function playMeow() {
         meow.currentTime = 0;
         playing = false;
     }
+}
+
+
+
+function applySettings() {
+  cat.style.bottom = "auto";
+  cat.style.top = "auto";
+  cat.style.left = "auto";
+  cat.style.right = "auto";
+  const positions = {
+    bl: { bottom: "20px", left: "20px" },
+    br: { bottom: "20px", right: "20px" },
+    tl: { top: "20px", left: "20px" },
+    tr: { top: "20px", right: "20px" }
+  };
+  const p = positions[settings.pos] || positions.br;
+  Object.assign(cat.style, p);  
+  if (settings.mode === "walk") {
+    if (settings.pos === "br" || settings.pos === "tr") {
+      pos = window.innerWidth - 100;
+      dir = -1;
+    } else {
+      pos = 0;
+      dir = 1;
+    }
+    cat.style.left = pos + "px";
+  }
+  
+  // Apply mode
+  if (timer) clearTimeout(timer);
+  if (bongoT) clearTimeout(bongoT);
+  
+  switch (settings.mode) {
+    case "walk":
+      setState("walk");
+      if (!moveInterval) startMoving();
+      break;
+    case "idle":
+      if (moveInterval) stopMoving();
+      setState(Math.random() < 0.5 ? "sit" : "sleep");
+      break;
+    case "sleep":
+      if (moveInterval) stopMoving();
+      setState("sleep");
+      break;
+    case "bongo":
+      if (moveInterval) stopMoving();
+      setState("bongo");
+      break;
+  }
 }
 
 

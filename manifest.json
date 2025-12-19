@@ -3,6 +3,11 @@
   "name": "Meowxtension",
   "version": "0.0.1",
   "description": "Your Browser Cat Companion",
+  "action": {
+    "default_popup": "popup.html"
+  },
+
+  "permissions": ["storage"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

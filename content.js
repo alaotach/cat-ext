@@ -64,25 +64,27 @@ function move() {
             }
             const rect = cat.getBoundingClientRect();
             const catX = rect.left + rect.width / 2;
-            cat.style.transform = mouseX < catX ? "scaleX(-1)" : "scaleX(1)";
+            dir = mouseX < catX ? -1 : 1;
+            cat.style.transform = `scaleX(${dir})`;
             return;
         } else {
             if (mousetrack) {
                 mousetrack = false;
                 setState("walk");
             }
+            cat.style.transform = `scaleX(${dir})`;
         }
         if (state !== "walk") return;
         pos += dir * speed;
         const screenW = window.innerWidth;
         if (pos + 80 >= screenW) {
         dir = -1;
-        cat.style.transform = "scaleX(-1)";
+        cat.style.transform = `scaleX(${dir})`;
         Idle();
         }
         if ( pos <= 0) {
             dir = 1;
-            cat.style.transform = "scaleX(1)";
+            cat.style.transform = `scaleX(${dir})`;
             Idle();
         }
         cat.style.left = pos + "px";

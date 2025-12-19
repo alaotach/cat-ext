@@ -19,6 +19,11 @@ meow.volume = 0.6;
 meow.loop = false;
 let playing = false;
 
+const typingAud = new Audio(chrome.runtime.getURL("typing.mp3"));
+typingAud.volume = 0.3;
+typingAud.loop = false;
+let typing = false;
+
 bongo.appendChild(leftPaw);
 bongo.appendChild(rightPaw);
 bongo.appendChild(mouseDevice);
@@ -161,7 +166,16 @@ document.addEventListener("keydown", (e) => {
     leftPaw.style.backgroundImage = `url('${sprites.leftPaw}')`;
     lastWasLeft = true;
   }
+  if (!e.repeat) {
+    typingAud.currentTime = 0;
+    typingAud.play().catch(() => {});
+
+    setTimeout(() => {
+      typingAud.pause();
+      typingAud.currentTime = 0;
+    }, 150);
   
+  }
   if (bongoT) clearTimeout(bongoT);
   bongoT = setTimeout(() => {
     setState(prevState);

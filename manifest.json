@@ -12,7 +12,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["image.png", "cat_walk.png", "cat_sit.png", "cat_sleep.png", "osu/*.png", "meow.mp3"],
+      "resources": ["image.png", "cat_walk.png", "cat_sit.png", "cat_sleep.png", "osu/*.png", "meow.mp3", "typing.mp3"],
       "matches": ["<all_urls>"]
     }
   ]
